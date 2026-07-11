@@ -1,5 +1,4 @@
 import { signInWithPopup } from "firebase/auth";
-import React from "react";
 import { auth, googleProvider } from "../../utils/firebase";
 import api from "../../utils/axios";
 import { FcGoogle } from "react-icons/fc";
@@ -14,7 +13,7 @@ const Home = () => {
 
   const loginHandler = async (token) => {
     try {
-      const { data } = await api.post("/auth/login", {
+      const { data } = await api.post("/api/auth/login", {
         token,
       });
       console.log(data);
