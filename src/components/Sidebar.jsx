@@ -1,17 +1,43 @@
-import { PanelLeftIcon, PenSquare, Plus } from "lucide-react";
+import {
+  Coins,
+  LogOut,
+  MessageSquare,
+  PanelLeftIcon,
+  PanelRight,
+  PenSquare,
+  Plus,
+  User,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { getConversations } from "../features/getConversations";
-import { useDispatch } from "react-redux";
-import { addConversation, setConversation } from "../redux/conversationSlice";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addConversation,
+  setConversation,
+  setSelectConversation,
+} from "../redux/conversationSlice";
 import { createConversation } from "../features/createConversation";
+import { logout } from "../features/logout";
+import { setUserData } from "../redux/userSlice";
 
 const Sidebar = () => {
   const dispatch = useDispatch();
+  const { conversations, selectedConversation } = useSelector(
+    (state) => state.conversation,
+  );
+  const { userData } = useSelector((state) => state.user);
+
   const [collapsed, setCollapsed] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const newConversation = async () => {
     const data = await createConversation();
     dispatch(addConversation(data.conversation));
+  };
+
+  const handleLogout = () => {
+    logout();
+    dispatch(setUserData(null));
   };
 
   useEffect(() => {
@@ -20,7 +46,60 @@ const Sidebar = () => {
       dispatch(setConversation(data.conversations));
     };
     fetchConversations();
-  }, [dispatch]);
+  }, [dispatch, userData?._id]);
+
+  if (collapsed) {
+    return (
+      <div className="hidden lg:flex flex-col items-center w-14 h-screen bg-[#0d0f14] border-r border-white/6 py-4 gap-1 shrink-0">
+        <button
+          className="flex items-center justify-center w-9 h-9 rounded-xl text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-colors duration-150 bg-transparent border-none cursor-pointer mb-1"
+          onClick={() => setCollapsed(false)}
+        >
+          <PanelRight />
+        </button>
+        <button
+          className="flex items-center justify-center w-9 h-9 rounded-xl text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-colors duration-150 bg-transparent border-none cursor-pointer"
+          onClick={newConversation}
+        >
+          <Plus size={17} />
+        </button>
+
+        <div className="flex-1 overflow-y-auto px-2.5 pb-2 scrollbar-none [&::-webkit-scrollbar]:hidden pt-5">
+          {conversations.map((con, i) => {
+            const isActive = con?._id === selectedConversation?._id;
+            return (
+              <div
+                key={i}
+                className={`flex items-center gap-2.5 cursor-pointer mb-0.5 px-3 py-2.5 rounded-[10px] border transition-colors duration-150 ${isActive ? "bg-indigo-500/10 border-indigo-500/18" : "bg-transparent border-transparent"}`}
+                onClick={() => dispatch(setSelectConversation(con))}
+              >
+                <div
+                  className={`flex items-center justify-center shrink-0 w-7 h-7 rounded-lg transition-colors duration-150 ${isActive ? "bg-indigo-500/15 text-indigo-400" : "bg-white/5 text-slate-500"}`}
+                >
+                  <MessageSquare size={13} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="relative shrink-0">
+          {userData?.avatar && !imageError ? (
+            <img
+              src={userData?.avatar}
+              alt="Image"
+              className="w-9 h-9 rounded-[10px] object-cover border-2 border-indigo-500/25"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="w-9 h-9 rounded-[10px] bg-white/6 flex items-center justify-center">
+              <User />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed lg:static inset-y-0 left-0 z-50 w-67.5 h-screen shrink-0 bg-[#0d0f14] border-r border-white/6">
@@ -59,7 +138,84 @@ const Sidebar = () => {
         </div>
 
         {/* Converstaion  */}
-        <div></div>
+        {conversations.length == 0 ? (
+          <div className="px-5 pt-4 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-600">
+            No Recent Conversations
+          </div>
+        ) : (
+          <div className="px-5 pt-4 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-600">
+            Recents
+          </div>
+        )}
+        <div className="flex-1 overflow-y-auto px-2.5 pb-2 scrollbar-none [&::-webkit-scrollbar]:hidden">
+          {conversations.map((con, i) => {
+            const isActive = con?._id === selectedConversation?._id;
+            return (
+              <div
+                key={i}
+                className={`flex items-center gap-2.5 cursor-pointer mb-0.5 px-3 py-2.5 rounded-[10px] border transition-colors duration-150 ${isActive ? "bg-indigo-500/10 border-indigo-500/18" : "bg-transparent border-transparent"}`}
+                onClick={() => dispatch(setSelectConversation(con))}
+              >
+                <div
+                  className={`flex items-center justify-center shrink-0 w-7 h-7 rounded-lg transition-colors duration-150 ${isActive ? "bg-indigo-500/15 text-indigo-400" : "bg-white/5 text-slate-500"}`}
+                >
+                  <MessageSquare size={13} />
+                </div>
+                <span
+                  className={`text-[13px] font-medium truncate ${isActive ? "text-slate-100" : "text-slate-300"}`}
+                >
+                  {con.title || "New Chat"}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mx-2.5 border-t border-white/6">
+          <div className="px-3.5 py-3.5">
+            {userData ? (
+              <div className="flex items-center gap-2.5 cursor-pointer rounded-xl px-3 py-2.5 hover:bg-white/5 transition-colors duration-150">
+                <div className="relative shrink-0">
+                  {userData?.avatar && !imageError ? (
+                    <img
+                      src={userData?.avatar}
+                      alt="Image"
+                      className="w-9 h-9 rounded-[10px] object-cover border-2 border-indigo-500/25"
+                      onError={() => setImageError(true)}
+                    />
+                  ) : (
+                    <div className="w-9 h-9 rounded-[10px] bg-white/6 flex items-center justify-center">
+                      <User />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13.5px] font-semibold text-slate-100 truncate">
+                    {userData?.name || "user"}
+                  </p>
+                  <p className="text-[11px] text-slate-600 mt-px">
+                    {"Free Plan"}
+                  </p>
+                </div>
+                <div className="flex gap-1">
+                  <button className="flex items-center justify-center w-7 h-7 rounded-[7px] border-none bg-transparent text-yellow-600 cursor-pointer hover:bg-white/8 hover:text-slate-400 transition-all duration-150">
+                    <Coins size={16} />
+                  </button>
+                  <button
+                    className="flex items-center justify-center w-7 h-7 rounded-[7px] border-none bg-transparent text-slate-600 cursor-pointer hover:bg-white/8 hover:text-slate-400 transition-all duration-150"
+                    onClick={() => handleLogout()}
+                  >
+                    <LogOut size={16} />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button className="w-full flex items-center justify-center gap-2 text-sm font-medium text-slate-200 bg-white/5 border border-white/8 rounded-xl py-2.75 cursor-pointer hover:bg-white/8 transition-colors duration-150">
+                Login
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

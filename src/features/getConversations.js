@@ -6,6 +6,6 @@ export const getConversations = async () => {
     return data;
   } catch (error) {
     console.log(`Get Conversations Error - ${error}`);
-    return [];
+    return { conversations: [] };
   }
 };
