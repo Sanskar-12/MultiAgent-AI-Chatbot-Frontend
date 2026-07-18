@@ -9,7 +9,7 @@ const ChatInput = () => {
 
   const handleSendMessage = async () => {
     const payload = {
-      prompt: value.trim(),
+      prompt: value,
       conversationId: selectedConversation?._id,
     };
 
@@ -28,7 +28,7 @@ const ChatInput = () => {
           className="w-full bg-transparent outline-none resize-none text-[14px] text-slate-200 placeholder:text-slate-600 leading-relaxed scrollbar-none [&::-webkit-scrollbar]:hidden disabled:opacity-50"
           rows={3}
           onChange={(e) => setValue(e.target.value)}
-          value={value.trim()}
+          value={value}
         />
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1">
