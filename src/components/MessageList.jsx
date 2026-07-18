@@ -23,8 +23,11 @@ const MessageList = () => {
           </div>
           <div className="flex flex-wrap justify-center gap-2 mt-1">
             {["Make a Netflix Clone", "Explain Redis", "Build a dashboard"].map(
-              (s) => (
-                <button className="text-[12px] text-slate-400 bg-white/4 border border-white/[0.07] px-3 py-1.5 rounded-lg hover:bg-white/8 hover:text-slate-200 transition-colors duration-150 cursor-pointer">
+              (s, i) => (
+                <button
+                  className="text-[12px] text-slate-400 bg-white/4 border border-white/[0.07] px-3 py-1.5 rounded-lg hover:bg-white/8 hover:text-slate-200 transition-colors duration-150 cursor-pointer"
+                  key={i}
+                >
                   {s}
                 </button>
               ),
