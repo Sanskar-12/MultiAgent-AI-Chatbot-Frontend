@@ -1,11 +1,13 @@
 import { Mic, Paperclip, Send } from "lucide-react";
 import { useState } from "react";
 import { sendMessage } from "../features/sendMessage";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { addMessages } from "../redux/messageSlice";
 
 const ChatInput = () => {
   const [value, setValue] = useState("");
   const { selectedConversation } = useSelector((state) => state.conversation);
+  const dispatch = useDispatch();
 
   const handleSendMessage = async () => {
     const payload = {
@@ -13,8 +15,30 @@ const ChatInput = () => {
       conversationId: selectedConversation?._id,
     };
 
+    dispatch(
+      addMessages({
+        role: "user",
+        content: value,
+      }),
+    );
+
+    setValue("");
+
     const data = await sendMessage(payload);
-    console.log(data);
+
+    dispatch(
+      addMessages({
+        role: "assistant",
+        content: data.response,
+      }),
+    );
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
   };
 
   return (
@@ -29,6 +53,7 @@ const ChatInput = () => {
           rows={3}
           onChange={(e) => setValue(e.target.value)}
           value={value}
+          onKeyDown={handleKeyDown}
         />
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1">
