@@ -3,6 +3,13 @@ import { useState } from "react";
 import { sendMessage } from "../features/sendMessage";
 import { useDispatch, useSelector } from "react-redux";
 import { addMessages } from "../redux/messageSlice";
+import { createConversation } from "../features/createConversation";
+import {
+  addConversation,
+  setConversationTitle,
+  setSelectConversation,
+} from "../redux/conversationSlice";
+import { updateConversation } from "../features/updateConversation";
 
 const ChatInput = () => {
   const [value, setValue] = useState("");
@@ -10,28 +17,40 @@ const ChatInput = () => {
   const dispatch = useDispatch();
 
   const handleSendMessage = async () => {
-    const payload = {
-      prompt: value,
-      conversationId: selectedConversation?._id,
-    };
+    try {
+      let conversation = selectedConversation;
+      let conversationId = conversation?._id;
 
-    dispatch(
-      addMessages({
-        role: "user",
-        content: value,
-      }),
-    );
+      if (!conversation) {
+        const data = await createConversation();
+        conversation = data.conversation;
+        conversationId = conversation._id;
+        dispatch(setSelectConversation(conversation));
+        dispatch(addConversation(conversation));
+      }
 
-    setValue("");
+      if (conversation.title === "New Chat") {
+        const data = await updateConversation({
+          conversationId,
+          title: value.slice(0, 40),
+        });
+        dispatch(
+          setConversationTitle({
+            title: data.conversation.title,
+            conversationId: data.conversation._id,
+          }),
+        );
+      }
 
-    const data = await sendMessage(payload);
+      dispatch(addMessages({ role: "user", content: value }));
+      setValue("");
 
-    dispatch(
-      addMessages({
-        role: "assistant",
-        content: data.response,
-      }),
-    );
+      const data = await sendMessage({ prompt: value, conversationId });
+
+      dispatch(addMessages({ role: "assistant", content: data.response }));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleKeyDown = (e) => {
