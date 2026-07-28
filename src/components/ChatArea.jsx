@@ -22,7 +22,7 @@ const ChatArea = () => {
   }, [selectedConversation?._id, dispatch]);
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex min-w-0 flex-col">
       <Navbar />
       <MessageList />
       <ChatInput />

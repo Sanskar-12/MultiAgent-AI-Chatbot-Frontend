@@ -102,7 +102,15 @@ const ChatInput = () => {
         agent: selectedAgent.toLowerCase(),
       });
 
-      dispatch(addMessages({ role: "assistant", content: data.response }));
+      console.log(data);
+
+      dispatch(
+        addMessages({
+          role: "assistant",
+          content: data.response,
+          images: data.images,
+        }),
+      );
     } catch (err) {
       console.error(err);
     }
