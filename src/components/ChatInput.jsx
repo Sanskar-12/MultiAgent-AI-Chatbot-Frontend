@@ -29,6 +29,14 @@ const ChatInput = () => {
   const { selectedConversation } = useSelector((state) => state.conversation);
   const dispatch = useDispatch();
 
+  const extractContent = (raw) => {
+    if (typeof raw !== "string") return raw;
+    const text = raw.trim();
+
+    const match = text.match(/^```(?:markdown|md)?\n([\s\S]*)\n```$/);
+    return match ? match[1] : text;
+  };
+
   const agents = [
     {
       id: "auto",
@@ -102,7 +110,7 @@ const ChatInput = () => {
         agent: selectedAgent.toLowerCase(),
       });
 
-      console.log(data);
+      console.log(extractContent(data.response));
 
       dispatch(
         addMessages({
