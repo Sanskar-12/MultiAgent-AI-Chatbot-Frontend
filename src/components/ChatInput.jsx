@@ -13,7 +13,7 @@ import {
 import { useState } from "react";
 import { sendMessage } from "../features/sendMessage";
 import { useDispatch, useSelector } from "react-redux";
-import { addMessages } from "../redux/messageSlice";
+import { addMessages, setArtifacts } from "../redux/messageSlice";
 import { createConversation } from "../features/createConversation";
 import {
   addConversation,
@@ -110,15 +110,17 @@ const ChatInput = () => {
         agent: selectedAgent.toLowerCase(),
       });
 
-      console.log(extractContent(data.response));
+      console.log(data);
 
       dispatch(
         addMessages({
           role: "assistant",
-          content: data.response,
+          content: extractContent(data.response),
           images: data.images,
         }),
       );
+
+      dispatch(setArtifacts(data.artifacts));
     } catch (err) {
       console.error(err);
     }

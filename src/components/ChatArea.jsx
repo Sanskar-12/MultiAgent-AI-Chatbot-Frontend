@@ -4,7 +4,7 @@ import MessageList from "./MessageList";
 import Navbar from "./Navbar";
 import { useDispatch, useSelector } from "react-redux";
 import { getMessages } from "../features/getMessages";
-import { setMessages } from "../redux/messageSlice";
+import { setArtifacts, setMessages } from "../redux/messageSlice";
 
 const ChatArea = () => {
   const { selectedConversation } = useSelector((state) => state.conversation);
@@ -16,6 +16,16 @@ const ChatArea = () => {
       if (selectedConversation) {
         const data = await getMessages(selectedConversation?._id);
         dispatch(setMessages(data.messages));
+
+        const latestArtifactMessage = [...data.messages]
+          .reverse()
+          .find((msg) => msg.artifacts && msg.artifacts.length > 0);
+
+        // always dispatch, even when nothing was found
+        dispatch(setArtifacts(latestArtifactMessage?.artifacts ?? []));
+      } else {
+        // optional: clear artifacts when no conversation is selected
+        dispatch(setArtifacts([]));
       }
     };
     fetchMessagesOfConversation();
