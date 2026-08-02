@@ -1,10 +1,12 @@
-import { Code2, PanelRight, PanelRightOpen } from "lucide-react";
+import { Code2, Copy, Eye, PanelRight, PanelRightOpen } from "lucide-react";
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import { easeInOut, motion } from "motion/react";
 
 const Artifact = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const [tab, setTab] = useState("code");
+  const [activeFile, setActiveFile] = useState(0);
 
   const { artifacts } = useSelector((state) => state.message);
 
@@ -13,8 +15,8 @@ const Artifact = () => {
   return (
     <motion.div
       className="hidden lg:flex border border-white/6 flex-col overflow-hidden shrink-0 w-62.5"
-      initial={{ width: 250 }}
-      animate={{ width: collapsed ? 48 : 250 }}
+      initial={{ width: 350 }}
+      animate={{ width: collapsed ? 48 : 350 }}
       transition={{
         duration: 0.25,
         ease: easeInOut,
@@ -37,6 +39,40 @@ const Artifact = () => {
                 {artifacts[0].title}
               </div>
             </div>
+            <div className="flex items-center gap-1 shrink-0">
+              <button className="flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-lg transition-colors duration-150 bg-transparent border-none cursor-pointer">
+                <Copy size={15} />
+              </button>
+            </div>
+            <div className="flex items-center gap-1 bg-white/4 border border-white/6 p-1 rounded-lg">
+              <button
+                onClick={() => setTab("code")}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium rounded-md transition-colors duration-150 ${tab === "code" ? "bg-indigo-500 text-white" : "text-slate-500 hover:text-slate-200"} `}
+              >
+                <Code2 size={11} /> Code
+              </button>
+              <button
+                onClick={() => setTab("preview")}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium rounded-md transition-colors duration-150 ${tab === "preview" ? "bg-indigo-500 text-white" : "text-slate-500 hover:text-slate-200"} `}
+              >
+                <Eye size={11} /> Preview
+              </button>
+            </div>
+          </div>
+          <div className="flex h-auto border-b border-white/6 overflow-x-auto scrollbar-none [&::-webkit-scrollbar]:hidden shrink-0">
+            {artifacts[0]?.files.map((f, index) => (
+              <button
+                className={`px-4 py-2.5 text-[11px] font-medium whitespace-nowrap transition-colors duration-150 border-r border-white/5 relative cursor-pointer bg-transparent ${activeFile === index ? "text-indigo-400" : "text-slate-500 hover:text-slate-300"}"
+               `}
+                key={index}
+                onClick={() => setActiveFile(index)}
+              >
+                {f.name}
+                {activeFile === index && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-t-full" />
+                )}
+              </button>
+            ))}
           </div>
         </div>
       ) : (
