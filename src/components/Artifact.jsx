@@ -1,22 +1,72 @@
-import { Code2, Copy, Eye, PanelRight, PanelRightOpen } from "lucide-react";
+import {
+  Check,
+  Code2,
+  Copy,
+  Eye,
+  PanelRight,
+  PanelRightOpen,
+} from "lucide-react";
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import { easeInOut, motion } from "motion/react";
+import Editor from "@monaco-editor/react";
+import { detectCodeLanguage } from "../../utils/detectCodeLanguage";
 
 const Artifact = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [tab, setTab] = useState("code");
   const [activeFile, setActiveFile] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   const { artifacts } = useSelector((state) => state.message);
 
   if (artifacts.length === 0) return;
 
+  const file = artifacts[0].files[activeFile];
+
+  const htmlFile = artifacts[0]?.files?.find(
+    (file) => file.name === "index.html",
+  );
+  const cssFile = artifacts[0]?.files?.find(
+    (file) => file.name === "style.css",
+  );
+  const jsFile = artifacts[0]?.files?.find((file) => file.name === "script.js");
+
+  const canPreview = Boolean(htmlFile);
+
+  const previewDoc = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <style>
+          ${cssFile?.content || ""}
+        </style>
+    </head>
+    <body>
+      ${htmlFile?.content || ""}
+      <script>
+          ${jsFile?.content || ""}
+      </script>
+    </body>
+    </html>
+  `;
+
+  const copyCodeHandler = async (code) => {
+    await navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => {
+      setCopied(false);
+    }, 2000);
+  };
+
   return (
     <motion.div
       className="hidden lg:flex border border-white/6 flex-col overflow-hidden shrink-0 w-62.5"
-      initial={{ width: 350 }}
-      animate={{ width: collapsed ? 48 : 350 }}
+      initial={{ width: 400 }}
+      animate={{ width: collapsed ? 48 : 400 }}
       transition={{
         duration: 0.25,
         ease: easeInOut,
@@ -40,39 +90,92 @@ const Artifact = () => {
               </div>
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              <button className="flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-lg transition-colors duration-150 bg-transparent border-none cursor-pointer">
-                <Copy size={15} />
+              <button
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-lg transition-colors duration-150 bg-transparent border-none cursor-pointer"
+                onClick={() => copyCodeHandler(file?.content)}
+              >
+                {copied ? <Check size={15} /> : <Copy size={15} />}
               </button>
             </div>
-            <div className="flex items-center gap-1 bg-white/4 border border-white/6 p-1 rounded-lg">
-              <button
-                onClick={() => setTab("code")}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium rounded-md transition-colors duration-150 ${tab === "code" ? "bg-indigo-500 text-white" : "text-slate-500 hover:text-slate-200"} `}
-              >
-                <Code2 size={11} /> Code
-              </button>
-              <button
-                onClick={() => setTab("preview")}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium rounded-md transition-colors duration-150 ${tab === "preview" ? "bg-indigo-500 text-white" : "text-slate-500 hover:text-slate-200"} `}
-              >
-                <Eye size={11} /> Preview
-              </button>
-            </div>
+            {canPreview && (
+              <div className="flex items-center gap-1 bg-white/4 border border-white/6 p-1 rounded-lg">
+                <button
+                  onClick={() => setTab("code")}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium rounded-md transition-colors duration-150 ${tab === "code" ? "bg-indigo-500 text-white" : "text-slate-500 hover:text-slate-200"} `}
+                >
+                  <Code2 size={11} /> Code
+                </button>
+                <button
+                  onClick={() => setTab("preview")}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium rounded-md transition-colors duration-150 ${tab === "preview" ? "bg-indigo-500 text-white" : "text-slate-500 hover:text-slate-200"} `}
+                >
+                  <Eye size={11} /> Preview
+                </button>
+              </div>
+            )}
           </div>
-          <div className="flex h-auto border-b border-white/6 overflow-x-auto scrollbar-none [&::-webkit-scrollbar]:hidden shrink-0">
-            {artifacts[0]?.files.map((f, index) => (
-              <button
-                className={`px-4 py-2.5 text-[11px] font-medium whitespace-nowrap transition-colors duration-150 border-r border-white/5 relative cursor-pointer bg-transparent ${activeFile === index ? "text-indigo-400" : "text-slate-500 hover:text-slate-300"}"
+          {tab === "code" && (
+            <div className="flex h-auto border-b border-white/6 overflow-x-auto scrollbar-none [&::-webkit-scrollbar]:hidden shrink-0">
+              {artifacts[0]?.files.map((f, index) => (
+                <button
+                  className={`px-4 py-2.5 text-[11px] font-medium whitespace-nowrap transition-colors duration-150 border-r border-white/5 relative cursor-pointer bg-transparent ${activeFile === index ? "text-indigo-400" : "text-slate-500 hover:text-slate-300"}"
                `}
-                key={index}
-                onClick={() => setActiveFile(index)}
+                  key={index}
+                  onClick={() => setActiveFile(index)}
+                >
+                  {f.name}
+                  {activeFile === index && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-t-full" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="flex-1 overflow-hidden">
+            {tab === "preview" && canPreview ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="w-full h-full"
               >
-                {f.name}
-                {activeFile === index && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-t-full" />
-                )}
-              </button>
-            ))}
+                <iframe
+                  title="preview"
+                  srcDoc={previewDoc}
+                  className="w-full h-full bg-white"
+                  sandbox="allow-scripts allow-same-origin"
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="w-full h-full"
+              >
+                <Editor
+                  theme="vs-dark"
+                  language={detectCodeLanguage(file?.name)}
+                  value={file?.content}
+                  options={{
+                    readOnly: true,
+                    minimap: {
+                      enabled: false,
+                    },
+                    fontSize: 13,
+                    wordWrap: "on",
+                    automaticLayout: true,
+                    scrollBeyondLastLine: false,
+                    padding: {
+                      top: 16,
+                    },
+                    lineNumbers: "on",
+                    renderLineHighlight: "none",
+                  }}
+                />
+              </motion.div>
+            )}
           </div>
         </div>
       ) : (

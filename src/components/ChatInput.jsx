@@ -110,8 +110,6 @@ const ChatInput = () => {
         agent: selectedAgent.toLowerCase(),
       });
 
-      console.log(data);
-
       dispatch(
         addMessages({
           role: "assistant",
@@ -120,7 +118,7 @@ const ChatInput = () => {
         }),
       );
 
-      dispatch(setArtifacts(data.artifacts));
+      dispatch(setArtifacts(data.artifacts || []));
     } catch (err) {
       console.error(err);
     }
