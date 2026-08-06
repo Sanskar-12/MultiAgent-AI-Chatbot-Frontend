@@ -64,7 +64,7 @@ const ChatInput = () => {
       label: "PPT",
     },
     {
-      id: "image",
+      id: "imageGen",
       icon: ImageIcon,
       label: "Image",
     },
@@ -107,7 +107,7 @@ const ChatInput = () => {
       const data = await sendMessage({
         prompt: value,
         conversationId,
-        agent: selectedAgent.toLowerCase(),
+        agent: selectedAgent,
       });
 
       dispatch(

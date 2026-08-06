@@ -88,6 +88,16 @@ const MessageBubble = ({ role, content, images }) => {
                 <ExternalLink size={14} />
               </a>
             ),
+            img: ({ src, alt }) => (
+              <img
+                src={src}
+                alt={alt || "Image"}
+                loading="lazy"
+                onClick={() => setLightBox(src)}
+                onError={(e) => e.currentTarget.remove()}
+                className="max-w-full md:max-w-sm rounded-xl border border-white/10 my-3 cursor-zoom-in hover:opacity-90 transition"
+              />
+            ),
             code: ({ className, children }) => {
               const value = String(children).trim();
 
