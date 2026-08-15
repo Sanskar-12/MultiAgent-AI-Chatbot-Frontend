@@ -19,6 +19,7 @@ import {
 import { createConversation } from "../features/createConversation";
 import { logout } from "../features/logout";
 import { setUserData } from "../redux/userSlice";
+import BillingDrawer from "./BillingDrawer";
 
 const Sidebar = () => {
   const dispatch = useDispatch();
@@ -29,6 +30,7 @@ const Sidebar = () => {
 
   const [collapsed, setCollapsed] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [showBilling, setShowBilling] = useState(false);
 
   const newConversation = async () => {
     const data = await createConversation();
@@ -198,7 +200,10 @@ const Sidebar = () => {
                   </p>
                 </div>
                 <div className="flex gap-1">
-                  <button className="flex items-center justify-center w-7 h-7 rounded-[7px] border-none bg-transparent text-yellow-600 cursor-pointer hover:bg-white/8 hover:text-slate-400 transition-all duration-150">
+                  <button
+                    className="flex items-center justify-center w-7 h-7 rounded-[7px] border-none bg-transparent text-yellow-600 cursor-pointer hover:bg-white/8 hover:text-slate-400 transition-all duration-150"
+                    onClick={() => setShowBilling(true)}
+                  >
                     <Coins size={16} />
                   </button>
                   <button
@@ -217,6 +222,8 @@ const Sidebar = () => {
           </div>
         </div>
       </div>
+
+      <BillingDrawer open={showBilling} onClose={() => setShowBilling(false)} />
     </div>
   );
 };
