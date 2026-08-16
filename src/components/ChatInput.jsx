@@ -21,6 +21,7 @@ import {
   setSelectConversation,
 } from "../redux/conversationSlice";
 import { updateConversation } from "../features/updateConversation";
+import { deductCredits } from "../redux/userSlice";
 
 const ChatInput = () => {
   const [value, setValue] = useState("");
@@ -35,6 +36,15 @@ const ChatInput = () => {
 
     const match = text.match(/^```(?:markdown|md)?\n([\s\S]*)\n```$/);
     return match ? match[1] : text;
+  };
+
+  const COST = {
+    chat: 1,
+    search: 5,
+    coding: 10,
+    pdf: 10,
+    ppt: 10,
+    imageGen: 10,
   };
 
   const agents = [
@@ -109,6 +119,17 @@ const ChatInput = () => {
         conversationId,
         agent: selectedAgent,
       });
+
+      let creditsToBeDeducted;
+
+      if (selectedAgent === "auto") {
+        creditsToBeDeducted = COST[data.agent];
+      } else {
+        creditsToBeDeducted = COST[selectedAgent];
+      }
+
+      // deduct credits
+      dispatch(deductCredits(creditsToBeDeducted));
 
       dispatch(
         addMessages({
