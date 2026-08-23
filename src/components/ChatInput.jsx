@@ -10,7 +10,7 @@ import {
   Send,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { sendMessage } from "../features/sendMessage";
 import { useDispatch, useSelector } from "react-redux";
 import { addMessages, setArtifacts } from "../redux/messageSlice";
@@ -26,6 +26,9 @@ import { deductCredits } from "../redux/userSlice";
 const ChatInput = () => {
   const [value, setValue] = useState("");
   const [selectedAgent, setSelectedAgent] = useState("auto");
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const fileRef = useRef(null);
 
   const { selectedConversation } = useSelector((state) => state.conversation);
   const dispatch = useDispatch();
@@ -36,6 +39,13 @@ const ChatInput = () => {
 
     const match = text.match(/^```(?:markdown|md)?\n([\s\S]*)\n```$/);
     return match ? match[1] : text;
+  };
+
+  const fileHandler = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+    }
   };
 
   const COST = {
@@ -114,11 +124,14 @@ const ChatInput = () => {
       dispatch(addMessages({ role: "user", content: value }));
       setValue("");
 
-      const data = await sendMessage({
-        prompt: value,
-        conversationId,
-        agent: selectedAgent,
-      });
+      const formData = new FormData();
+
+      formData.append("prompt", value);
+      formData.append("conversationId", conversationId);
+      formData.append("agent", selectedAgent);
+      formData.append("file", selectedFile);
+
+      const data = await sendMessage(formData);
 
       let creditsToBeDeducted;
 
@@ -188,8 +201,16 @@ const ChatInput = () => {
         />
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1">
+            <input
+              type="file"
+              accept=".pdf,image/*"
+              hidden
+              ref={fileRef}
+              onChange={fileHandler}
+            />
+
             <button className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-600 hover:text-slate-400 hover:bg-white/5 border border-transparent hover:border-white/6 transition-all duration-150 bg-transparent cursor-pointer">
-              <Paperclip size={16} />
+              <Paperclip size={16} onClick={() => fileRef.current.click()} />
             </button>
             <button className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-600 hover:text-slate-400 hover:bg-white/5 border border-transparent hover:border-white/6 transition-all duration-150 bg-transparent cursor-pointer">
               <Mic size={16} />
