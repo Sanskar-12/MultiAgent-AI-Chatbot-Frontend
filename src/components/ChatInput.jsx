@@ -8,6 +8,7 @@ import {
   Paperclip,
   Presentation,
   Send,
+  X,
   Zap,
 } from "lucide-react";
 import { useRef, useState } from "react";
@@ -123,6 +124,7 @@ const ChatInput = () => {
 
       dispatch(addMessages({ role: "user", content: value }));
       setValue("");
+      setSelectedFile(null);
 
       const formData = new FormData();
 
@@ -191,6 +193,40 @@ const ChatInput = () => {
             );
           })}
         </div>
+
+        {selectedFile && (
+          <div className="my-3">
+            <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/4 px-3 py-2">
+              {selectedFile?.type === "application/pdf" ? (
+                <FileText size={16} className="text-red-400" />
+              ) : (
+                selectedFile?.type.startsWith("image/") && (
+                  <img
+                    src={URL.createObjectURL(selectedFile)}
+                    alt="Image"
+                    className="h-10 w-10 rounded-xl object-cover mt-3"
+                  />
+                )
+              )}
+              <div>
+                <p className="text-xs text-white">{selectedFile?.name}</p>
+                <p className="text-[10px] text-slate-500">
+                  {Math.ceil(selectedFile?.size)} KB
+                </p>
+              </div>
+              <button
+                className="ml-2"
+                onClick={() => {
+                  setSelectedFile(null);
+                  fileRef.current.value = "";
+                }}
+              >
+                <X size={14} className="text-slate-500 hover:text-white" />
+              </button>
+            </div>
+          </div>
+        )}
+
         <textarea
           placeholder="Ask anything..."
           className="w-full bg-transparent outline-none resize-none text-[14px] text-slate-200 placeholder:text-slate-600 leading-relaxed scrollbar-none [&::-webkit-scrollbar]:hidden disabled:opacity-50"
