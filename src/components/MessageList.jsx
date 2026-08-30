@@ -1,5 +1,6 @@
 import { useSelector } from "react-redux";
 import MessageBubble from "./MessageBubble";
+import LoadingAnimation from "./LoadingAnimation";
 
 const MessageList = () => {
   const { selectedConversation } = useSelector((state) => state.conversation);
@@ -45,6 +46,7 @@ const MessageList = () => {
               />
             </div>
           ))}
+          <LoadingAnimation />
         </div>
       )}
     </div>
