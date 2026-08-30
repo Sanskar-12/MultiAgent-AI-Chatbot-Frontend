@@ -8,76 +8,41 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useSelector } from "react-redux";
-import { easeInOut, motion } from "motion/react";
+import { AnimatePresence, easeInOut, motion } from "motion/react";
 import Editor from "@monaco-editor/react";
 import { detectCodeLanguage } from "../../utils/detectCodeLanguage";
 
-const Artifact = () => {
-  const [collapsed, setCollapsed] = useState(false);
-  const [tab, setTab] = useState("code");
-  const [activeFile, setActiveFile] = useState(0);
-  const [copied, setCopied] = useState(false);
-
-  const { artifacts } = useSelector((state) => state.message);
-
-  if (artifacts.length === 0) return;
-
-  const file = artifacts[0].files[activeFile];
-
-  const htmlFile = artifacts[0]?.files?.find(
-    (file) => file.name === "index.html",
-  );
-  const cssFile = artifacts[0]?.files?.find(
-    (file) => file.name === "style.css",
-  );
-  const jsFile = artifacts[0]?.files?.find((file) => file.name === "script.js");
-
-  const canPreview = Boolean(htmlFile);
-
-  const previewDoc = `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Document</title>
-        <style>
-          ${cssFile?.content || ""}
-        </style>
-    </head>
-    <body>
-      ${htmlFile?.content || ""}
-      <script>
-          ${jsFile?.content || ""}
-      </script>
-    </body>
-    </html>
-  `;
-
-  const copyCodeHandler = async (code) => {
-    await navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => {
-      setCopied(false);
-    }, 2000);
-  };
+// Move PanelContent outside of the Artifact component
+const PanelContent = ({
+  collapsed,
+  setCollapsed,
+  tab,
+  setTab,
+  activeFile,
+  setActiveFile,
+  artifacts,
+  file,
+  canPreview,
+  previewDoc,
+  copyCodeHandler,
+  copied,
+  setMobileOpen,
+}) => {
+  console.log(collapsed);
 
   return (
-    <motion.div
-      className="hidden lg:flex border border-white/6 flex-col overflow-hidden shrink-0 w-62.5"
-      initial={{ width: 400 }}
-      animate={{ width: collapsed ? 48 : 400 }}
-      transition={{
-        duration: 0.25,
-        ease: easeInOut,
-      }}
-    >
+    <>
       {!collapsed ? (
         <div className="flex flex-col h-full bg-[#0d0f14]">
           <div className="h-13.75 px-4 border-b border-white/6 flex items-center gap-3 shrink-0">
             <button
               className="flex items-center justify-center w-7 h-7 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-colors duration-150 bg-transparent border-none cursor-pointer shrink-0"
-              onClick={() => setCollapsed(true)}
+              onClick={() => {
+                setCollapsed(true);
+                if (setMobileOpen) {
+                  setMobileOpen(false);
+                }
+              }}
             >
               <PanelRight size={16} />
             </button>
@@ -119,7 +84,7 @@ const Artifact = () => {
               {artifacts[0]?.files.map((f, index) => (
                 <button
                   className={`px-4 py-2.5 text-[11px] font-medium whitespace-nowrap transition-colors duration-150 border-r border-white/5 relative cursor-pointer bg-transparent ${activeFile === index ? "text-indigo-400" : "text-slate-500 hover:text-slate-300"}"
-               `}
+             `}
                   key={index}
                   onClick={() => setActiveFile(index)}
                 >
@@ -199,7 +164,140 @@ const Artifact = () => {
           </div>
         </div>
       )}
-    </motion.div>
+    </>
+  );
+};
+
+const Artifact = () => {
+  const [collapsed, setCollapsed] = useState(false);
+  const [tab, setTab] = useState("code");
+  const [activeFile, setActiveFile] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const { artifacts } = useSelector((state) => state.message);
+
+  if (artifacts.length === 0) return;
+
+  const file = artifacts[0].files[activeFile];
+
+  const htmlFile = artifacts[0]?.files?.find(
+    (file) => file.name === "index.html",
+  );
+  const cssFile = artifacts[0]?.files?.find(
+    (file) => file.name === "style.css",
+  );
+  const jsFile = artifacts[0]?.files?.find((file) => file.name === "script.js");
+
+  const canPreview = Boolean(htmlFile);
+
+  const previewDoc = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <style>
+          ${cssFile?.content || ""}
+        </style>
+    </head>
+    <body>
+      ${htmlFile?.content || ""}
+      <script>
+          ${jsFile?.content || ""}
+      </script>
+    </body>
+    </html>
+  `;
+
+  const copyCodeHandler = async (code) => {
+    await navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => {
+      setCopied(false);
+    }, 2000);
+  };
+
+  return (
+    <>
+      <button
+        className="lg:hidden fixed bottom-24 right-4 z-40 flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-[12px] font-medium shadow-lg shadow-indigo-500/20 border-none cursor-pointer transition-colors duration-150"
+        onClick={() => {
+          (setMobileOpen(true), setCollapsed(false));
+        }}
+      >
+        <Code2 size={13} />
+        View Code
+      </button>
+
+      <AnimatePresence>
+        {mobileOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{
+                duration: 0.2,
+              }}
+              onClick={() => setMobileOpen(false)}
+              className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{
+                duration: 0.25,
+                ease: "easeInOut",
+              }}
+              className="lg:hidden fixed inset-y-0 right-0 z-50 w-[88vw] max-w-sm bg-[#0d0f14] border-l border-white/6 overflow-hidden flex flex-col"
+            >
+              <PanelContent
+                collapsed={collapsed}
+                setCollapsed={setCollapsed}
+                tab={tab}
+                setTab={setTab}
+                activeFile={activeFile}
+                setActiveFile={setActiveFile}
+                artifacts={artifacts}
+                file={file}
+                canPreview={canPreview}
+                previewDoc={previewDoc}
+                copyCodeHandler={copyCodeHandler}
+                copied={copied}
+                setMobileOpen={setMobileOpen}
+              />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+      <motion.div
+        className="hidden lg:flex border border-white/6 flex-col overflow-hidden shrink-0 w-62.5"
+        initial={{ width: 400 }}
+        animate={{ width: collapsed ? 48 : 400 }}
+        transition={{
+          duration: 0.25,
+          ease: easeInOut,
+        }}
+      >
+        <PanelContent
+          collapsed={collapsed}
+          setCollapsed={setCollapsed}
+          tab={tab}
+          setTab={setTab}
+          activeFile={activeFile}
+          setActiveFile={setActiveFile}
+          artifacts={artifacts}
+          file={file}
+          canPreview={canPreview}
+          previewDoc={previewDoc}
+          copyCodeHandler={copyCodeHandler}
+          copied={copied}
+        />
+      </motion.div>
+    </>
   );
 };
 
