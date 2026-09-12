@@ -14,7 +14,7 @@ import {
 import { useRef, useState } from "react";
 import { sendMessage } from "../features/sendMessage";
 import { useDispatch, useSelector } from "react-redux";
-import { addMessages, setArtifacts } from "../redux/messageSlice";
+import { addMessages, setArtifacts, setLoading } from "../redux/messageSlice";
 import { createConversation } from "../features/createConversation";
 import {
   addConversation,
@@ -98,6 +98,8 @@ const ChatInput = () => {
 
   const handleSendMessage = async () => {
     try {
+      dispatch(setLoading(true));
+
       let conversation = selectedConversation;
       let conversationId = conversation?._id;
 
@@ -135,6 +137,8 @@ const ChatInput = () => {
 
       const data = await sendMessage(formData);
 
+      dispatch(setLoading(false));
+
       let creditsToBeDeducted;
 
       if (selectedAgent === "auto") {
@@ -156,6 +160,7 @@ const ChatInput = () => {
 
       dispatch(setArtifacts(data.artifacts || []));
     } catch (err) {
+      dispatch(setLoading(false));
       console.error(err);
     }
   };
