@@ -32,6 +32,7 @@ const ChatInput = () => {
   const fileRef = useRef(null);
 
   const { selectedConversation } = useSelector((state) => state.conversation);
+  const { isLoading } = useSelector((state) => state.message);
   const dispatch = useDispatch();
 
   const extractContent = (raw) => {
@@ -137,8 +138,6 @@ const ChatInput = () => {
 
       const data = await sendMessage(formData);
 
-      dispatch(setLoading(false));
-
       let creditsToBeDeducted;
 
       if (selectedAgent === "auto") {
@@ -159,6 +158,7 @@ const ChatInput = () => {
       );
 
       dispatch(setArtifacts(data.artifacts || []));
+      dispatch(setLoading(false));
     } catch (err) {
       dispatch(setLoading(false));
       console.error(err);
@@ -259,7 +259,7 @@ const ChatInput = () => {
           </div>
           <button
             className={`flex items-center justify-center w-8 h-8 rounded-lg border-none cursor-pointer transition-all duration-150 ${value.trim() ? "bg-linear-to-br from-indigo-500 to-violet-700 hover:opacity-90 text-white" : "bg-white/5 text-slate-500 cursor-not-allowed"}`}
-            disabled={!value}
+            disabled={!value || isLoading}
             onClick={handleSendMessage}
           >
             <Send size={16} />
